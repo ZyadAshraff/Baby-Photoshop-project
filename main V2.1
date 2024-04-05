@@ -12,7 +12,7 @@
 
 // Teaching Assistant: Ahmed Fouad Lotfy
 
-// Who did what: Zyad Ashraf El-Sayed : Lighten and darken (filter 7 )
+// Who did what: Zyad Ashraf El-Sayed : Lighten and darken, GrayScale (filter 1, 7 )
 //               Abd-Elrahman mohamed : Black and white , flip (filter 2 , 5)
 //               Caroline Ayman Isaac : Invert and rotation, (filter 3 , 6)
 
@@ -36,6 +36,7 @@ void darken(Image& image1){
     }
 }
 
+
 // Function to lighten a color image
 void lighten(Image& image1){
     // nested loop to iterate over all pixels in the image .
@@ -49,6 +50,22 @@ void lighten(Image& image1){
                     // Ensure pixel value does not exceed 255
                     image1(i,j,k) = 255;
                 }
+            }
+        }
+    }
+}
+
+
+void grayScale(Image& image1){
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+            unsigned int avg=0;
+            for (int k = 0; k < image1.channels; k++) {
+                avg += image1(i, j, k);
+            }
+            avg = avg/3;
+            for (int k = 0; k < 3; k++) {
+                image1(i, j, k) = avg;
             }
         }
     }
@@ -81,12 +98,15 @@ void rotateImage(Image& image1, int angle) {
         newWidth = image1.width;
         newHeight = image1.height;
         // if degree = 90 or 270 the new dimensions are swapped .
-    } else {
+    }
+    else {
         newWidth = image1.height;
         newHeight = image1.width;
     }
+
     // Create a new image1 with the rotated dimensions .
     Image rotatedImage(newWidth, newHeight);
+
     // Iterate over all pixels in the original image1 .
     for (int i = 0; i < image1.width; i++) {
         for (int j = 0; j < image1.height; j++) {
@@ -96,10 +116,12 @@ void rotateImage(Image& image1, int angle) {
                 if (num_of_Rotation == 1) {
                     x = j;
                     y = newHeight - 1 - i;
-                } else if (num_of_Rotation == 2) {
+                }
+                else if (num_of_Rotation == 2) {
                     x = newWidth - 1 - i;
                     y = newHeight - 1 - j;
-                } else {
+                }
+                else {
                     x = newWidth - 1 - j;
                     y = i;
                 }
@@ -169,7 +191,6 @@ void vertical(Image& image1) {
 
 
 
-
 int main() {
     Image image1, image2, image3;
     string filename, option, option3;
@@ -198,85 +219,104 @@ int main() {
     while (true) {
         cout << "Choose what you want to do: " << endl;
         cout << "1) Load New Image" << endl;
-        cout << "2) Darken and Lighten" << endl;
-        cout << "3) Rotate image" << endl;
-        cout << "4) Invert filter" << endl;
-        cout << "5) Black and white filter" << endl;
-        cout << "6) Flip image" << endl;
-        cout << "7) Save image" << endl;
-        cout << "8) Exit" << endl;
+        cout << "2) Gray Scale" << endl;
+        cout << "3) Darken and Lighten" << endl;
+        cout << "4) Rotate image" << endl;
+        cout << "5) Invert filter" << endl;
+        cout << "6) Black and white filter" << endl;
+        cout << "7) Flip image" << endl;
+        cout << "8) Save image" << endl;
+        cout << "9) Exit" << endl;
 
         cin >> option;
 
-        // Process user choice .
-        if (option == "1") {
+         if (option == "1") {
+             // ask the user if he wants to save or not .
+             while (true) {
+                 cout << "Save the current image before loading new one?\n1) Save\n2) Don't save";
+                 cin >> option;
+                 if (option == "1") {
+                     // ask the user about the place of the saved file
+                     while(true) {
+                         cout << "Choose where to save image:\n1) Save on the same file\n2) Change the file name " << endl;
+                         cin >> option3;
+                         if(option3 == "1") {
+                             // to save on the same file
+                             if (image1.saveImage(filename)) {
+                                 cout << "=========================" << endl;
+                                 cout << "Image saved successfully." << endl;
+                                 cout << "=========================" << endl;
+                                 break;
+                             }
+                         }
 
-            // ask the user if he want to save or not .
-            while (true) {
-                cout << "Save the current image before loading new one?\n1) Save\n2) Don't save";
-                cin >> option;
-                if (option == "1") {
-                    // ask the user about the place of the saved file
-                    while(true) {
-                        cout << "Choose where to save image:\n1) Save on the same file\n2) Change the file name " << endl;
-                        cin >> option3;
-                        if(option3 == "1") {
-                            // to save on the same file
-                            if (image1.saveImage(filename)) {
-                                cout << "=========================" << endl;
-                                cout << "Image saved successfully." << endl;
-                                cout << "=========================" << endl;
-                                break;
-                            }
-                        }
+                             // to save at another file , we will take file name from the user .
+                         else if(option3 == "2"){
+                             while(true) {
+                                 cout << "Enter the name: " << endl;
+                                 cin >> output;
+                                 try {
+                                     if (image1.saveImage(output)) {
+                                         cout << "=========================" << endl;
+                                         cout << "Image saved successfully." << endl;
+                                         cout << "=========================" << endl;
+                                         break;
+                                     }
+                                 }
+                                 catch(...) {
+                                     continue;
+                                 }
+                             }
 
-                            // to save at anothor file , we will take file name from thee user .
-                        else if(option3 == "2"){
-                            while(true) {
-                                cout << "Enter the name: " << endl;
-                                cin >> output;
-                                try {
-                                    if (image1.saveImage(output)) {
-                                        cout << "=========================" << endl;
-                                        cout << "Image saved successfully." << endl;
-                                        cout << "=========================" << endl;
-                                        break;
-                                    }
-                                }
-                                catch(...) {
-                                    continue;
-                                }
-                            }
+                             break;
+                         }
+                             // to check the validation of the option .
+                         else{
+                             cout << "--Invalid option, please try again--" << endl;
+                             continue;
+                         }
+                     }
+                     break;
+                 }
 
-                            break;
-                        }
-                            // to check the validation of the option .
-                        else{
-                            cout << "Invalid input." << endl;
-                            continue;
-                        }
-                    }
-                    break;
-                }
+                 else if (option == "2") {
+                     break;
+                 }
+                 else{
+                     cout << "--Invalid option, please try again--" << endl;
+                     continue;
+                 }
+             }
+             // loading a new image to work on , take the file name from the user .
+             while (true) {
+                 cout << "- Enter the name of the image file you want to work on: " << endl;
+                 cin >> filename;
+                 try {
+                     if (image1.loadNewImage(filename)) {
+                         cout << "=========================" << endl;
+                         cout << "Image loaded successfully." << endl;
+                         cout << "=========================" << endl;
+                         break;
 
-                else if (option == "2") {
-                    break;
-                }
-            }
-            // loading a new image to work on , take the file name from the user .
-            cout << "- Enter the name of the image file you want to work on: ";
-            cin >> filename;
-            if (image1.loadNewImage(filename)) {
-                cout << "=========================" << endl;
-                cout << "Image loaded successfully." << endl;
-                cout << "=========================" << endl;
-                // check the validation of the file .
-            } else {
-                cout << "Error loading image. Please try again." << endl;
-            }
+                     }
+                 }
+                 catch (...) {
+                     continue;
+                 }
+             }
         }
-            // Darken or lighten the image , 1 for darken , 2 for lighten.
+
+
         else if (option == "2") {
+             grayScale(image1);
+             cout << "=========================" << endl;
+             cout << "Filter Applied successfully!" << endl;
+             cout << "=========================" << endl;
+             continue;
+        }
+
+            // Darken or lighten the image , 1 for darken , 2 for lighten.
+        else if (option == "3") {
             while (true) {
                 cout << "Choose the filter :\n1) Darken\n2) Lighten" << endl;
                 cin >> option3;
@@ -288,15 +328,15 @@ int main() {
                     break;
                 } else {
                     // check the validation of the option .
-                    cout << "Invalid choice." << endl;
+                    cout << "--Invalid option, please try again--" << endl;
                     continue;
                 }
             }
             continue;
         }
 
-            // Rotate the image taking spicific angle of rotation from the user .
-        else if (option == "3") {
+            // Rotate the image taking specific angle of rotation from the user .
+        else if (option == "4") {
             while(true) {
                 cout << "Enter the angle of rotation (90, 180, or 270): " << endl;
                 cin >> angle;
@@ -317,7 +357,7 @@ int main() {
         }
 
             // Invert colors of the image .
-        else if (option == "4") {
+        else if (option == "5") {
             invertImage(image1);
             cout << "=========================" << endl;
             cout << "Filter Applied successfully!" << endl;
@@ -326,7 +366,7 @@ int main() {
         }
 
             // Convert the image to black and white colors
-        else if (option == "5") {
+        else if (option == "6") {
             Black_White(image1);
             cout << "=========================" << endl;
             cout << "Filter Applied successfully!" << endl;
@@ -335,7 +375,7 @@ int main() {
         }
 
             // Flip the image horizontally or vertically according to user option .
-        else if (option == "6") {
+        else if (option == "7") {
             while (true) {
                 cout << "Choose :\n1) Horizontal\n2) Vertical" << endl;
                 cin >> option3;
@@ -349,7 +389,7 @@ int main() {
                 }
                     // check the validation of the option .
                 else {
-                    cout << "Invalid choice." << endl;
+                    cout << "--Invalid option, please try again--" << endl;
                     continue;
                 }
             }
@@ -360,7 +400,7 @@ int main() {
         }
 
             // Save the image
-        else if (option == "7") {
+        else if (option == "8") {
             while(true) {
                 // ask the user about the place of the saved file .
                 cout << "Choose where to save image:\n1) Save on the same file\n2) Change the file name " << endl;
@@ -375,7 +415,7 @@ int main() {
                     }
                 }
 
-                    // save at anothor file taking his name from the user .
+                    // save at another file taking his name from the user .
                 else if(option3 == "2"){
                     while(true) {
                         cout << "Enter the name: " << endl;
@@ -396,14 +436,14 @@ int main() {
                     break;
                 }
                 else{
-                    cout << "Invalid input." << endl;
+                    cout << "--Invalid option, please try again--" << endl;
                     continue;
                 }
             }
             continue;
         }
-            // ask the user if he want to save the current photo befor exit or not .
-        else if (option == "8") {
+            // ask the user if he wants to save the current photo before exit or not .
+        else if (option == "9") {
             while(true){
                 cout << "Do you want to save the current image? :\n1) Exit without save\n2) Save and exit" << endl;
                 cin >> option3;
@@ -416,7 +456,7 @@ int main() {
                     // save the current photo and exit the program .
                 else if (option3 == "2") {
                     while(true) {
-                        // ask the user if to save on the same file or at anothor file .
+                        // ask the user if to save on the same file or at another file .
                         cout << "Choose where to save image:\n1) Save on the same file\n2) Change the file name " << endl;
                         cin >> option3;
                         // save at the same file .
@@ -428,7 +468,7 @@ int main() {
                                 break;
                             }
                         }
-                            // save on anothor file .
+                            // save on another file .
                         else if(option3 == "2"){
                             while(true) {
                                 cout << "Enter the name: " << endl;
@@ -450,7 +490,7 @@ int main() {
                         }
                             // check the validation of the option .
                         else{
-                            cout << "Invalid input." << endl;
+                            cout << "--Invalid option, please try again--" << endl;
                             continue;
                         }
                     }
@@ -460,7 +500,7 @@ int main() {
         }
             // check the validation of the option .
         else {
-            cout << "Invalid option. Please choose again." << endl;
+            cout << "--Invalid option, please try again--" << endl;
         }
     }
 }
