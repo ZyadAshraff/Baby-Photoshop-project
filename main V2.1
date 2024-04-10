@@ -228,6 +228,83 @@ void normal_colored_frame(Image& image1){
   
 }
 
+void fancy_colored_frame(Image& image1){
+
+    int frameWidth1 = 15 ; // First frame width
+    int frameWidth2 = 25 ; // Second frame width
+    int option1 ;    // for color choosen
+    int option2 ;    // for color choosen
+
+    cout << "  chose the outer frame color : 1) black , 2) white  , 3) green  , 4) red  , or 5) blue . " << endl;
+    cin >> option1 ;
+    cout << "  chose the inner frame color : 1) black , 2) white  , 3) green  , 4) red  , or 5) blue . "<< endl ;
+    cin >> option2 ;
+
+
+
+    // Draw the first frame 
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+            if (i < frameWidth1 || i >= image1.width - frameWidth1 ||
+                j < frameWidth1 || j >= image1.height - frameWidth1) {
+                for (int k = 0; k < 3; k++) {
+
+                    if (option1 == 1) {
+                      image1(i, j, k) = 0;
+                    } else if (option1 == 2) {
+                     image1(i, j, k) = 255;
+                    } else if (option1 == 3) {
+                    image1(i, j, 0) = 0 ;
+                    image1(i, j, 1) =  255 ;
+                    image1(i, j, 2) =  0 ;
+                    }
+                    else if (option1 == 4) {
+                    image1(i, j, 0) = 255 ;
+                    image1(i, j, 1) =  0;
+                    image1(i, j, 2) =  0 ;
+                    }
+                    else if (option1 == 5) {
+                    image1(i, j, 0) = 0 ;
+                    image1(i, j, 1) =  0;
+                    image1(i, j, 2) =  255 ;
+                    }
+
+                }
+            }
+        }
+    }
+
+    // Draw the second frame 
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+            if (i < frameWidth2 && i >= frameWidth1 || i >= image1.width - frameWidth2 && i < image1.width - frameWidth1 ||
+                j < frameWidth2 && j >= frameWidth1 || j >= image1.height - frameWidth2 && j < image1.height - frameWidth1) {
+                for (int k = 0; k < 3; k++) {
+                    if (option2 == 1) {
+                      image1(i, j, k) = 0;
+                    } else if (option2 == 2) {
+                     image1(i, j, k) = 255;
+                    } else if (option2 == 3) {
+                    image1(i, j, 0) = 0 ;
+                    image1(i, j, 1) =  255 ;
+                    image1(i, j, 2) =  0 ;
+                    }
+                    else if (option2 == 4) {
+                    image1(i, j, 0) = 255 ;
+                    image1(i, j, 1) =  0;
+                    image1(i, j, 2) =  0 ;
+                    }
+                    else if (option2 == 5) {
+                    image1(i, j, 0) = 0 ;
+                    image1(i, j, 1) =  0;
+                    image1(i, j, 2) =  255 ;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void inferaredImage(Image& image1){
 
     for (int i = 0; i < image1.width; i++) {
