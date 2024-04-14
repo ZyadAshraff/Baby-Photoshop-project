@@ -1,0 +1,1010 @@
+// FCAI – Structured Programming – 2024 - Assignment 3
+// Program Name: CS112_A3_Part2B_S3_20230151_20230215_20230292.cpp
+
+// Program Description: this program contains a menu that has 15 options of filters :
+//                      grayscale, lighten and darken, flip, black and white, invert, rotation, detect edges,
+//                      purple tint, merge, crop, add frame, resize, blur, infrared and wano sunlight
+
+// Last Modification Date: APR 14 ,2024
+
+// Author1 and ID and Email: Zyad Ashraf El-Sayed   20230151   ziadashraf950@gmail.com
+// Author2 and ID and Email: Abd-Elrahman mohamed   20230215   abdelrahmanmohamed191120@gmail.com
+// Author3 and ID and Email: Caroline Ayman Isaac   20230292   karolayman551@gmail.com
+
+// Teaching Assistant: Ahmed Fouad Lotfy
+
+// Who did what: Zyad Ashraf El-Sayed : Lighten and darken, GrayScale ,Merge, detecting edges and purple tint
+//               Abd-Elrahman mohamed : Black and white, flip, resize, crop and wano sunlight
+//               Caroline Ayman Isaac : Invert, rotation, blur, adding frame and infrared
+
+// System diagram link: https://drive.google.com/file/d/1aOckNWi7OjEh7cwz9EWCFgqKLJNwW-q0/view?usp=sharing
+
+
+#include <iostream>
+#include <cmath>
+#include "Image_Class.h"
+using namespace std;
+
+void Black_White(Image& image1) {
+    // Convert image1 to black and white
+    for (int i = 0; i < image1.width; ++i) {
+        for (int j = 0; j < image1.height; ++j) {
+
+            // Calculate luminance of each pixel
+            int luminance = 0;
+            for (int k = 0; k < image1.channels; ++k) {
+                luminance += image1(i, j, k);
+            }
+            luminance /= image1.channels;
+
+            // Set pixel to black or white based on luminance
+            for (int k = 0; k < image1.channels; ++k) {
+                if (luminance <= 127) {
+                    image1(i, j, k) = 0;
+                } else {
+                    image1(i, j, k) = 255;
+                }
+            }
+        }
+    }
+}
+
+
+
+void darken(Image& image1){
+    // nested loop to iterate over all pixels in the image .
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+            for (int k = 0; k < 3; k++) {
+
+                // darken each pixel in the photo .
+                image1(i,j,k) /= 2;
+            }
+        }
+    }
+}
+
+
+
+void lighten(Image& image1){
+    // nested loop to iterate over all pixels in the image .
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+            for (int k = 0; k < 3; k++) {
+
+                // Increase pixel value by 50%
+                unsigned int newPixel = image1(i,j,k) + (0.5 * image1(i,j,k));
+                image1(i,j,k) = newPixel;
+
+                // Ensure pixel value does not exceed 255
+                if(newPixel > 255){
+                    image1(i,j,k) = 255;
+                }
+            }
+        }
+    }
+}
+
+
+
+void grayScale(Image& image1) {
+
+    // Loop through each pixel in the image
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+
+            // Calculate the average of all color channels
+            unsigned int avg = 0;
+            for (int k = 0; k < image1.channels; k++) {
+                avg += image1(i, j, k);
+            }
+            avg /= image1.channels;
+
+            // Set all color channels to the average for grayscale effect
+            for (int k = 0; k < image1.channels; k++) {
+                image1(i, j, k) = avg;
+            }
+        }
+    }
+}
+
+
+
+void purple(Image& image1) {
+
+    // Loop through each pixel in the image
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+
+            // Reduce the intensity of the green channel for a purple tint
+            image1(i, j, 1) *= 0.65;
+
+            // Ensure that the pixel value is not higher than 255
+            if (image1(i, j, 1) > 255) {
+                image1(i, j, 1) = 255;
+            }
+        }
+    }
+}
+
+
+
+void resize(Image& image1,float width,float height){
+    // Create a new image with specified dimensions
+    Image image2(width, height);
+
+    // Loop over the image
+    for (int i = 0; i < image2.width; ++i) {
+        for (int j = 0; j < image2.height; ++j) {
+            for (int k = 0; k < 3; ++k) {
+
+                // Apply nearest neighbour algorithm to resize the image
+                float x = i * (image1.width / width);
+                float y = j * (image1.height / height);
+
+                image2(i, j, k) = image1(x, y, k);
+            }
+        }
+    }
+    image1=image2;
+}
+
+
+
+void merge_min(Image& image1,Image& image2){
+    // Take the minimum dimensions from the two images as dimensions of the result image
+    unsigned int width ,height;
+    width = min(image1.width,image2.width);
+    height = min(image1.height,image2.height);
+
+    // Define new image
+    Image image3(width,height);
+
+    // Loop over the pixels of two images to merge them
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
+            for (int k = 0; k < 3; k++) {
+
+                // Merging the two pixels together
+                image3(i,j,k)=(image1(i,j,k)+image2(i,j,k))/2;
+
+                // Ensure that each pixel not exceed 255
+                if(image3(i,j,k) > 255){
+                    image3(i,j,k) = 255;
+                }
+            }
+        }
+    }
+    image1 = image3;
+}
+
+
+
+void merge_max(Image& image1,Image& image2){
+    // Take the maximum dimensions from the two images as dimensions of the result image
+    unsigned int width ,height;
+    width = max(image1.width,image2.width);
+    height = max(image1.height,image2.height);
+
+    // Define new image
+    Image image3(width,height);
+
+    // Resize the images to the maximum dimensions
+    resize(image1,width,height);
+    resize(image2,width,height);
+
+    // Loop over the pixels of two images to merge them
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
+            for (int k = 0; k < 3; k++) {
+
+                // Merging the two pixels together
+                image3(i,j,k)=(image1(i,j,k)+image2(i,j,k))/2;
+
+                // Ensure that each pixel not exceed 255
+                if(image3(i,j,k) > 255){
+                    image3(i,j,k) = 255;
+                }
+            }
+        }
+    }
+    image1 = image3;
+}
+
+
+
+void detect_edges(Image& image1) {
+    // Convert to grayscale first
+    grayScale(image1);
+    // New image should be of the original size or adjust according to how you want to handle edges
+    Image final_image(image1.width, image1.height);
+    // Define the sobel matrices that we will use over the image pixels
+    const int SobelX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
+    const int SobelY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
+
+    // Loop through each pixel in the image
+    for (int i = 1; i < image1.width - 1; i++) {
+        for (int j = 1; j < image1.height - 1; j++) {
+            for (int k = 0; k < 3; k++) {
+                int x = 0, y = 0;
+
+                // Apply Sobel filter
+                for (int c = -1; c <= 1; c++) {
+                    for (int l = -1; l <= 1; l++) {
+                        x += image1(i + c, j + l, k) * SobelX[(c + 1) * 3 + (l + 1)];
+                        y += image1(i + c, j + l, k) * SobelY[(c + 1) * 3 + (l + 1)];
+                    }
+                }
+
+                // Compute edge strength
+                int newPixel = (sqrt(x * x + y * y)) * 1.5;
+
+                // apply thresholding
+                if (newPixel > 255) {
+                    newPixel = 255;
+                }
+                final_image(i, j, k)=newPixel;
+            }
+        }
+    }
+    // Invert black and white to get the result we want
+    for (int i = 1; i < image1.width - 1; i++) {
+        for (int j = 1; j < image1.height - 1; j++) {
+            for (int k = 0; k < 3; k++) {
+                if (final_image(i, j, k) == 255) {
+                    final_image(i, j, k) = 0;
+                }
+                else{
+                    final_image(i, j, k) = 255;
+                }
+            }
+        }
+    }
+    image1=final_image;
+}
+
+
+
+void crop(Image& image1, int x, int y, int width, int height) {
+    // Create a new image with dimensions specified for the cropped region
+    Image image2(width, height);
+
+    // Check if the original image is large enough for cropping
+    if (x + width <= image1.width && y + height <= image1.height) {
+        for (int i = 0; i < width; ++i) {
+            for (int j = 0; j < height; ++j) {
+                for (int k = 0; k < 3; ++k) {
+                    // Copy pixel value at (i + x, j + y) from the original image to the cropped image
+                    image2(i, j, k) = image1(i + x, j + y, k);
+                }
+            }
+        }
+        image1 = image2;
+    }
+}
+
+
+
+void invertImage (Image & image1){
+    // nested loop to iterate over all pixels in the image .
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+            for (int k = 0; k < image1.channels; k++) {
+                // invert each color value in the image.
+                image1(i, j, k) = 255-image1(i, j, k);
+            }
+        }
+    }
+}
+
+
+
+void rotateImage(Image& image1, int angle) {
+    // Calculate the number of 90-degree rotations .
+    int num_of_Rotation = angle / 90;
+    int newWidth, newHeight;
+
+    // Calculate the dimensions of the rotated image1 .
+    // if degree = 180 the new dimensions are still the same .
+    if (num_of_Rotation % 2 == 0) {
+        newWidth = image1.width;
+        newHeight = image1.height;
+        // if degree = 90 or 270 the new dimensions are swapped .
+    }
+    else {
+        newWidth = image1.height;
+        newHeight = image1.width;
+    }
+
+    // Create a new image1 with the rotated dimensions .
+    Image rotatedImage(newWidth, newHeight);
+
+    // Iterate over all pixels in the original image1 .
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+            for (int k = 0; k < image1.channels; k++) {
+                int x, y; // set variables for x and y to save the new coordinates .
+                // Calculate the new coordinates for the rotated pixel according to the angle.
+                if (num_of_Rotation == 1) {
+                    x = j;
+                    y = newHeight - 1 - i;
+                }
+                else if (num_of_Rotation == 2) {
+                    x = newWidth - 1 - i;
+                    y = newHeight - 1 - j;
+                }
+                else {
+                    x = newWidth - 1 - j;
+                    y = i;
+                }
+                // Copy the pixel value to the new rotated image1
+                rotatedImage(x, y, k) = image1(i, j, k);
+            }
+        }
+    }
+    // Update the original image1 with the rotated image1.
+    image1 = rotatedImage;
+}
+
+
+
+void horizontal_flip(Image& image1) {
+    // Iterate over each row
+    for (int j = 0; j < image1.height; ++j) {
+        // Iterate over the left half of the width
+        for (int i = 0; i < image1.width / 2; ++i) {
+            // Swap pixels from left to right
+            for (int k = 0; k < image1.channels; ++k) {
+                swap(image1(i, j, k), image1(image1.width - 1 - i, j, k));
+            }
+        }
+    }
+}
+
+
+
+void vertical_flip(Image& image1) {
+    // Iterate over each column
+    for (int i = 0; i < image1.width; ++i) {
+        // Iterate over the top half of the height
+        for (int j = 0; j < image1.height / 2; ++j) {
+            // Swap pixels from top to bottom
+            for (int k = 0; k < image1.channels; ++k) {
+                swap(image1(i, j, k), image1(i, image1.height - 1 - j, k));
+            }
+        }
+    }
+}
+
+
+
+void Blur_filter(Image& image1) {
+    // Initialize new image
+    Image final_image(image1.width , image1.height );
+
+    // Loop over the image pixels
+    for (int i = 16; i < image1.width - 16; i++) {
+        for (int j = 16; j < image1.height - 16; j++) {
+            for (int k = 0; k < 3; k++) {
+                int x = 0;
+
+                // Take a sub matrix and add all its pixels together
+                for (int c = -16; c <= 16; c++) {
+                    for (int l = -16; l <= 16; l++) {
+                        x += image1(i + c, j + l, k); //add pixels together
+                    }
+                }
+
+                // filter intensity(the divisor value is based on the size of the matrix)
+                int newPixel = x / 1089;
+
+                // making sure that the pixel value is not higher than 255
+                if (newPixel > 255) {
+                    newPixel = 255;
+                }
+                // Add the new pixel to the final image
+                final_image(i, j, k) = newPixel;
+            }
+        }
+    }
+    image1 = final_image;
+}
+
+
+
+void Infrared_filter(Image& image1){
+    // Loop through each pixel in the image
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+
+            // Set the red to 255 and invert the green and blue color channels
+            for (int k = 0; k < 3; k++) {
+                image1(i, j, 0) = 255;
+                image1(i, j, 1) = 255 - image1(i, j, 1);
+                image1(i, j, 2) = 255 - image1(i, j, 2);
+
+                // Ensure color channels are within valid range
+                if(image1(i, j, k) > 255){
+                    image1(i, j, k) = 255;
+                }
+                else if(image1(i, j, k) < 0){
+                    image1(i, j, k) = 0;
+                }
+            }
+        }
+    }
+}
+
+
+
+void wano_sunlight(Image& image1){
+
+    int r, g, b;
+    int yellow_of_red = 30;
+    int yellow_of_green = 30;
+    int darkness=50; //for reduce brightness
+
+    for (int i = 0; i < image1.width; ++i) {
+        for (int j = 0; j < image1.height; ++j) {
+            r = image1(i, j, 0); // Red channel
+            g = image1(i, j, 1); // Green channel
+            b = image1(i, j, 2); // Blue channel
+
+            // Increase red and green for yellow tint
+            r += yellow_of_red ;
+            g += yellow_of_green;
+            b-=darkness;
+            if (r > 255) r = 255;
+            if (g > 255) g = 255;
+            if(b<0)      b=0;
+
+            // Update the image with new RGB values
+            image1(i, j, 0) = r;
+            image1(i, j, 1) = g;
+            image1(i,j,2)=b;
+        }
+    }
+}
+
+
+
+void normal_colored_frame(Image& image1){
+    // Prompt the user to select a frame color
+    int option ;
+    while(true) {
+        cout << "What color do you want to apply to the frame?" << endl;
+        cout << "1) Black, 2) White, 3) Green, 4) Red, or 5) Blue: ";
+        cin >> option;
+
+        // Check if the input is valid
+        if (option != 1 && option != 2 && option != 3 && option != 4 && option != 5) {
+            cout << "Invalid option." << endl;
+            continue;
+        }
+        else break;
+    }
+    int frameWidth = 10 ;
+
+    // Loop through each pixel in the image
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+
+            // Check if the pixel is within the frame boundary
+            if (i < frameWidth || i >= image1.width - frameWidth ||
+                j < frameWidth || j >= image1.height - frameWidth) {
+
+                // Apply the selected frame color to the pixel
+                for (int k = 0; k < 3; k++) {
+                    if (option == 1) {
+                        image1(i, j, k) = 0;  // Black frame
+                    } else if (option == 2) {
+                        image1(i, j, k) = 255;  // White frame
+                    } else if (option == 3) {
+                        // Green frame
+                        image1(i, j, 0) = 0 ;
+                        image1(i, j, 1) =  255 ;
+                        image1(i, j, 2) =  0 ;
+                    }
+                    else if (option == 4) {
+                        // Red frame
+                        image1(i, j, 0) = 255 ;
+                        image1(i, j, 1) =  0;
+                        image1(i, j, 2) =  0 ;
+                    }
+                    else if (option == 5) {
+                        // Blue frame
+                        image1(i, j, 0) = 0 ;
+                        image1(i, j, 1) =  0;
+                        image1(i, j, 2) =  255 ;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+void fancy_colored_frame(Image& image1){
+
+    int frameWidth1 = 15 ; // First frame width
+    int frameWidth2 = 25 ; // Second frame width
+    int option1 ;    // for color chosen
+    int option2 ;    // for color chosen
+
+    cout << "  chose the outer frame color : 1) black , 2) white  , 3) green  , 4) red  , or 5) blue . " << endl;
+    cin >> option1 ;
+    cout << "  chose the inner frame color : 1) black , 2) white  , 3) green  , 4) red  , or 5) blue . "<< endl ;
+    cin >> option2 ;
+
+
+
+    // Draw the first frame
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+            if (i < frameWidth1 || i >= image1.width - frameWidth1 ||
+                j < frameWidth1 || j >= image1.height - frameWidth1) {
+                for (int k = 0; k < 3; k++) {
+
+                    if (option1 == 1) {
+                        image1(i, j, k) = 0;
+                    } else if (option1 == 2) {
+                        image1(i, j, k) = 255;
+                    } else if (option1 == 3) {
+                        image1(i, j, 0) = 0 ;
+                        image1(i, j, 1) =  255 ;
+                        image1(i, j, 2) =  0 ;
+                    }
+                    else if (option1 == 4) {
+                        image1(i, j, 0) = 255 ;
+                        image1(i, j, 1) =  0;
+                        image1(i, j, 2) =  0 ;
+                    }
+                    else if (option1 == 5) {
+                        image1(i, j, 0) = 0 ;
+                        image1(i, j, 1) =  0;
+                        image1(i, j, 2) =  255 ;
+                    }
+
+                }
+            }
+        }
+    }
+
+    // Draw the second frame
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+            if (i < frameWidth2 && i >= frameWidth1 || i >= image1.width - frameWidth2 && i < image1.width - frameWidth1 ||
+                j < frameWidth2 && j >= frameWidth1 || j >= image1.height - frameWidth2 && j < image1.height - frameWidth1) {
+                for (int k = 0; k < 3; k++) {
+                    if (option2 == 1) {
+                        image1(i, j, k) = 0;
+                    } else if (option2 == 2) {
+                        image1(i, j, k) = 255;
+                    } else if (option2 == 3) {
+                        image1(i, j, 0) = 0 ;
+                        image1(i, j, 1) =  255 ;
+                        image1(i, j, 2) =  0 ;
+                    }
+                    else if (option2 == 4) {
+                        image1(i, j, 0) = 255 ;
+                        image1(i, j, 1) =  0;
+                        image1(i, j, 2) =  0 ;
+                    }
+                    else if (option2 == 5) {
+                        image1(i, j, 0) = 0 ;
+                        image1(i, j, 1) =  0;
+                        image1(i, j, 2) =  255 ;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+void filter_applied_message(){
+    cout << "=========================" << endl;
+    cout << "Filter Applied successfully!" << endl;
+    cout << "=========================" << endl;
+}
+
+
+
+void imageLoading(Image& image1, string msg){
+    string filename;
+    while (true) {
+        cout << msg <<endl;
+        cin >> filename;
+        try {
+            if (image1.loadNewImage(filename)) {
+                cout << "=========================" << endl;
+                cout << "Image loaded successfully." << endl;
+                cout << "=========================" << endl;
+                break;
+            }
+        }
+        catch (...) {
+            continue;
+        }
+    }
+}
+
+
+
+void imageSavingOptions(Image& image1,string filename){
+    while(true) {
+        string option3, output;
+        cout << "Choose where to save image:\n1) Save on the same file\n2) Change the file name " << endl;
+        cin >> option3;
+
+        if(option3 == "1") {
+            // to save on the same file
+            if (image1.saveImage(filename)) {
+                cout << "=========================" << endl;
+                cout << "Image saved successfully." << endl;
+                cout << "=========================" << endl;
+                break;
+            }
+        }
+
+        // to save at another file , we will take file name from the user .
+        else if(option3 == "2"){
+            while(true) {
+                cout << "Enter the name: " << endl;
+                cin >> output;
+                try {
+                    if (image1.saveImage(output)) {
+                        cout << "=========================" << endl;
+                        cout << "Image saved successfully." << endl;
+                        cout << "=========================" << endl;
+                        break;
+                    }
+                }
+                catch(...) {
+                    continue;
+                }
+            }
+
+            break;
+        }
+        // to check the validation of the option .
+        else{
+            cout << "--Invalid option, please try again--" << endl;
+            continue;
+        }
+    }
+}
+
+
+void display_menu(){
+    cout << "Choose what you want to do: " << endl;
+    cout << "\"press \'s\' to save, \'e\' to exit\" " << endl;
+    cout << "1) Load New Image" << endl;
+    cout << "2) Gray Scale" << endl;
+    cout << "3) Darken and Lighten" << endl;
+    cout << "4) Rotate image" << endl;
+    cout << "5) Invert filter" << endl;
+    cout << "6) Black and white filter" << endl;
+    cout << "7) Flip image" << endl;
+    cout << "8) Detect image edges" << endl;
+    cout << "9) Purple filter" << endl;
+    cout << "10) Merge images" << endl;
+    cout << "11) Crop image" << endl;
+    cout << "12) Add frame to image " << endl;
+    cout << "13) Resize image " << endl;
+    cout << "14) Blur image" << endl;
+    cout << "15) Infrared filter" << endl;
+    cout << "16) wano sunlight filter" << endl;
+}
+
+
+int main() {
+    Image image1, image2, image3;
+    string filename, option, option3, output, message;
+    int angle;
+
+    cout << "==== Welcome to Baby Photoshop program ====" << endl;
+
+    // Load an image.
+    message = "==> Enter the name of the image file ";
+    imageLoading(image1,message);
+
+    // Main menu for image processing operations .
+    while (true) {
+        display_menu();
+        cin >> option;
+
+         if (option == "1") {
+             // ask the user if he wants to save or not .
+             while (true) {
+                 cout << "==> Save the current image before loading new one?\n1) Save\n2) Don't save";
+                 cin >> option;
+                 if (option == "1") {
+                     // ask the user about the place of the saved file
+                     imageSavingOptions(image1,filename);
+                     break;
+                 }
+                 else if (option == "2") {
+                     break;
+                 }
+                 else{
+                     cout << "--Invalid option, please try again--" << endl;
+                     continue;
+                 }
+             }
+             // loading a new image to work on , take the file name from the user .
+             imageLoading(image1,message);
+        }
+
+        // Grayscale
+        else if (option == "2") {
+             grayScale(image1);
+             filter_applied_message();
+             continue;
+        }
+
+        // Darken or lighten the image , 1 for darken , 2 for lighten.
+        else if (option == "3") {
+            while (true) {
+                cout << "Choose the filter :\n1) Darken\n2) Lighten" << endl;
+                cin >> option3;
+                if (option3 == "1") {
+                    darken(image1);
+                    filter_applied_message();
+                    break;
+                }
+                else if (option3 == "2") {
+                    lighten(image1);
+                    filter_applied_message();
+                    break;
+                }
+                else {
+                    // check the validation of the option .
+                    cout << "--Invalid option, please try again--" << endl;
+                    continue;
+                }
+            }
+            continue;
+        }
+
+        // Rotate the image taking specific angle of rotation from the user .
+        else if (option == "4") {
+            while(true) {
+                cout << "Enter the angle of rotation (90, 180, or 270): " << endl;
+                cin >> angle;
+                // check the validation of the angle  .
+                if (angle != 90 && angle != 180 && angle != 270) {
+                    cout << "Invalid angle. Please enter 90, 180, or 270." << endl;
+                    continue;
+                }
+                else{
+                    break;
+                }
+            }
+            rotateImage(image1, angle);
+            filter_applied_message();
+            continue;
+        }
+
+        // Invert colors of the image .
+        else if (option == "5") {
+            invertImage(image1);
+            filter_applied_message();
+            continue;
+        }
+
+        // Convert the image to black and white colors
+        else if (option == "6") {
+            Black_White(image1);
+            filter_applied_message();
+            continue;
+        }
+
+        // Flip the image horizontally or vertically according to user option .
+        else if (option == "7") {
+            while (true) {
+                cout << "Choose :\n1) Horizontal\n2) Vertical" << endl;
+                cin >> option3;
+                if (option3 == "1") {
+                    horizontal_flip(image1);
+                    break;
+                }
+                else if (option3 == "2") {
+                    vertical_flip(image1);
+                    break;
+                }
+                    // check the validation of the option .
+                else {
+                    cout << "--Invalid option, please try again--" << endl;
+                    continue;
+                }
+            }
+             filter_applied_message();
+            continue;
+        }
+
+         // Detect edges
+         else if (option == "8") {
+             detect_edges(image1);
+             filter_applied_message();
+             continue;
+         }
+
+         // Purple tint
+         else if (option == "9") {
+             purple(image1);
+             filter_applied_message();
+             continue;
+         }
+
+         // Merge
+         else if (option == "10") {
+             message = "==> Enter the name of the image file you want to merge with:";
+             // Load the second image to merge with
+             imageLoading(image2,message);
+
+             // the user chooses how he wants to apply the merge
+             while (true) {
+                 cout << "==> Choose what do you want :\n1) Merge common area\n2) Resize the smaller image then merge" << endl;
+                 cin >> option3;
+                 if (option3 == "1") {
+                     merge_min(image1, image2);
+                     filter_applied_message();
+                     break;
+                 }
+                 else if (option3 == "2") {
+                     merge_max(image1, image2);
+                     filter_applied_message();
+                     break;
+                 }
+                 else {
+                     // check the validation of the option .
+                     cout << "--Invalid option, please try again--" << endl;
+                     continue;
+                 }
+             }
+             continue;
+         }
+
+         // Crop
+         else if (option == "11") {
+             string startPoint,dimension;
+             int width,height,x,y;
+
+             // taking the start point from user and validate it
+             while (true) {
+                 cout << "Enter the start point in the form X,Y: " << endl;
+                 cin >> startPoint;
+                 // Parsing start point and dimensions from the input strings
+                 size_t pos = startPoint.find(',');
+                 if (pos != string::npos) {
+                     x = stoi(startPoint.substr(0, pos));
+                     y = stoi(startPoint.substr(pos + 1));
+                     break;
+                 }
+                 else {
+                     cout << "Invalid start point format!";
+                     continue;
+                 }
+             }
+
+             // taking the dimensions from user and validate them
+             while (true) {
+                 cout << "Enter the dimensions in the form W*H: " << endl;
+                 cin >> dimension;
+                 size_t pos = dimension.find('*');
+                 if (pos != string::npos) {
+                     width = stoi(dimension.substr(0, pos));
+                     height = stoi(dimension.substr(pos + 1));
+                     break;
+                 }
+                 else {
+                     cout << "Invalid dimension format!";
+                     continue;
+                 }
+             }
+             crop(image1,x,y,width,height);
+             filter_applied_message();
+             continue;
+         }
+
+         // Frame
+         else if (option == "12") {
+             // user chooses how he wants the frame
+             while (true) {
+                 cout << "Choose what do you want:\n1) Regular frame\n2) Fancy frame" << endl;
+                 cin >> option;
+                 if (option == "1") {
+                     normal_colored_frame(image1);
+                     filter_applied_message();
+                     break;
+                 }
+                 else if (option == "2") {
+                     fancy_colored_frame(image1);
+                     filter_applied_message();
+                     break;
+                 }
+                 else{
+                     cout << "--Invalid option, please try again--" << endl;
+                     continue;
+                 }
+             }
+             continue;
+         }
+
+         // resize
+         else if (option == "13") {
+             string dimension;
+             float width, height;
+             while (true) {
+                 cout << "Enter the dimensions in the form W*H: " << endl;
+                 cin >> dimension;
+                 size_t pos = dimension.find('*');
+                 if (pos != string::npos) {
+                     width = stoi(dimension.substr(0, pos));
+                     height = stoi(dimension.substr(pos + 1));
+                     break;
+                 }
+                 else {
+                     cout << "Invalid dimension format!";
+                     continue;
+                 }
+             }
+             resize(image1,width,height);
+             filter_applied_message();
+             continue;
+         }
+
+         // Blur
+         else if (option == "14") {
+             Blur_filter(image1);
+             filter_applied_message();
+             continue;
+         }
+
+         // Infrared
+         else if (option == "15") {
+             Infrared_filter(image1);
+             filter_applied_message();
+             continue;
+         }
+
+         // Wano sunlight
+         else if (option == "16") {
+             wano_sunlight(image1);
+             filter_applied_message();
+             continue;
+         }
+
+        // Save the image
+        else if (option == "s") {
+             imageSavingOptions(image1,filename);
+            continue;
+        }
+        // ask the user if he wants to save the current photo before exit or not .
+        else if (option == "e") {
+            while(true){
+                cout << "Do you want to save the current image before exit? :\n1) Exit without save\n2) Save and exit" << endl;
+                cin >> option3;
+
+                // exiting the program without save .
+                if (option3 == "1") {
+                    return 0;
+                }
+
+                // save the current photo and exit the program .
+                else if (option3 == "2") {
+                    imageSavingOptions(image1,filename);
+                    return 0;
+                }
+            }
+        }
+
+        // check the validation of the option .
+        else {
+            cout << "--Invalid option, please try again--" << endl;
+        }
+    }
+}
